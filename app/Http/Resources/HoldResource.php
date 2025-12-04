@@ -14,6 +14,13 @@ class HoldResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        return parent::toArray($request);
+        return [
+            'id'         => $this->id,
+            'slot_id'    => $this->slot_id,
+            'status'     => $this->status,
+            'expires_at' => $this->when($this->expires_at !== null, $this->expires_at?->toISOString()),
+            'created_at' => $this->created_at->toISOString(),
+            'updated_at' => $this->updated_at->toISOString(),
+        ];
     }
 }

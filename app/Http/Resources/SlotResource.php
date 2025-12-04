@@ -14,6 +14,10 @@ class SlotResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        return parent::toArray($request);
+        return [
+            'slot_id' => $this->id,
+            'capacity' => $this->capacity,
+            'remaining' => $this->remaining,
+        ];
     }
 }

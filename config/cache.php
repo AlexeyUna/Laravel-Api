@@ -31,7 +31,9 @@ return [
     |                    "failover", "null"
     |
     */
-
+    'cache_tag' => env('CACHE_TAG_NAME', 'slots_availability'),
+    'slots_per_page' => (int)env('CACHE_PER_PAGE', 10),
+    'cache_ttl' => (int)env('CACHE_TTL', 12),
     'stores' => [
 
         'array' => [
@@ -112,6 +114,6 @@ return [
     |
     */
 
-    'prefix' => env('CACHE_PREFIX', Str::slug((string) env('APP_NAME', 'laravel')).'-cache-'),
+    'prefix' => env('CACHE_PREFIX'),
 
 ];

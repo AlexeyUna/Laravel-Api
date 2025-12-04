@@ -1,59 +1,172 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# API для бронирования слотов
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Это API для управления бронированием слотов (например, для складских окон, времени доставки или записи на прием). Сервис спроектирован для работы под нагрузкой и включает в себя:
 
-## About Laravel
+-   **Защиту от оверсела (overselling):** Использование транзакций и пессимистических блокировок на уровне базы данных гарантирует, что количество броней никогда не превысит доступную вместимость слота.
+-   **Идемпотентные запросы:** Повторная отправка запроса на создание брони с тем же ключом идемпотентности не приведет к созданию дубликата.
+-   **Временные удержания (holds):** Пользователи могут создать временную бронь на 5 минут, которую затем нужно подтвердить.
+-   **Горячий кеш:** Для ускорения получения данных о доступных слотах предусмотрена инвалидация кеша при изменении количества мест.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Требования
+-   Laravel 12 (PHP 8.2+) и MySQL 8+
+-   **Redis** (для кеширования и очередей)
+-   Веб-сервер (Nginx, Apache) или можно использовать встроенный сервер Laravel
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Установка и запуск
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+1.  **Клонируйте репозиторий:**
+    ```bash
+    git clone <your-repository-url>
+    cd api-app
+    ```
 
-## Learning Laravel
+2.  **Установите зависимости:**
+    ```bash
+    composer install
+    ```
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+3.  **Создайте файл `.env`:**
+    ```bash
+    cp .env.example .env
+    ```
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+4.  **Сгенерируйте ключ приложения:**
+    ```bash
+    php artisan key:generate
+    ```
 
-## Laravel Sponsors
+5.  **Настройте подключение к базе данных** в файле `.env`.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+6.  **Настройте подключение к Redis** в файле `.env`. Укажите драйвер кеша и очередей как `redis`.
+    ```dotenv
+    CACHE_DRIVER=redis
+    QUEUE_CONNECTION=redis
+    REDIS_HOST=127.0.0.1
+    REDIS_PASSWORD=null
+    REDIS_PORT=6379
+    ```
 
-### Premium Partners
+7.  **Выполните миграции и создайте тестовые данные:**
+    ```bash
+    php artisan migrate --seed
+    ```
+    *Эта команда создаст необходимые таблицы в базе данных и заполнит их тестовыми слотами.*
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+8.  **Запустите сервер:**
+    ```bash
+    php artisan serve
+    ```
 
-## Contributing
+## Тестирование основных сценариев
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Для тестирования можно использовать любой HTTP-клиент, например, `curl`. Примеры ниже предполагают, что сервер запущен по адресу `http://127.0.0.1:8000`.
 
-## Code of Conduct
+### 1. Получение доступных слотов
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Чтобы получить список доступных слотов, выполните GET-запрос. Команда `php artisan migrate --seed` создает тестовые слоты на ближайшие дни.
 
-## Security Vulnerabilities
+```bash
+curl -X GET "http://127.0.0.1:8000/api/slots/availability"
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+В ответе вы получите JSON-список слотов. Запомните `slot_id` одного из слотов для следующего шага. Обратите внимание, что ресурс `SlotResource` не включает поле `datetime`.
+```json
+{
+    "data": [
+        {
+            "slot_id": 1,
+            "capacity": 10,
+            "remaining": 10
+        }
+    ],
+    "meta": {
+        "count": 1,
+        "cursor": 0,
+        "next_cursor": null
+    }
+}
+```
 
-## License
+### 2. Создание временной брони (hold)
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Для создания временной брони выполните POST-запрос, указав `id` слота из предыдущего шага. Вам также понадобится сгенерировать уникальный ключ идемпотентности (рекомендуется UUID).
+
+**Замените `{slot_id}` на реальный ID слота.**
+
+```bash
+# Сгенерируйте UUID для ключа идемпотентности.
+# Пример для PowerShell: [guid]::NewGuid().ToString()
+# Пример для Linux/Mac: uuidgen
+export HOLD_ID="ВАШ_СГЕНЕРИРОВАННЫЙ_UUID"
+export SLOT_ID=1 # ID слота из шага 1
+
+curl -X POST http://127.0.0.1:8000/api/slots/$SLOT_ID/hold \
+-H "Content-Type: application/json" \
+-d "{
+    \"idempotency_key\": \"$HOLD_ID\"
+}"
+```
+
+В случае успеха вы получите `HTTP 201 Created` и информацию о созданном удержании. Запомните `id` (ключ идемпотентности) удержания (`$HOLD_ID`).
+```json
+{
+    "data": {
+        "id": 1,
+        "slot_id": 1,
+        "status": "held",
+        "expires_at": "2025-12-07T12:05:00.000000Z",
+        "created_at": "2025-12-07T12:00:00.000000Z",
+        "updated_at": "2025-12-07T12:00:00.000000Z"
+    }
+}
+```
+
+### 3. Подтверждение брони
+
+В течение 5 минут после создания временную бронь можно подтвердить. Для этого выполните POST-запрос, указав `id` из ответа создания брони в URL.
+
+**Замените `$HOLD_ID` на id.**
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/holds/$HOLD_ID/confirm
+```
+
+В случае успеха вы получите `HTTP 200 OK` и данные о подтвержденной брони.
+
+```json
+{
+    "id": 12,
+    "slot_id": 1,
+    "status": "confirmed",    
+    "created_at": "2025-12-07T12:00:00:00.000000Z",
+    "updated_at": "2025-12-07T12:01:00.000000Z"
+}
+```
+
+Если теперь снова запросить доступные слоты (шаг 1), вы увидите, что `remaining` у этого слота уменьшилось.
+При повторном запросе confirm - ответ должен быть тем же. 
+
+### 4. Отмена брони
+
+Бронь можно отменить в любом статусе (`held` или `confirmed`). Для этого выполните DELETE-запрос, указав `id` удержания hold в URL.
+
+**Замените `$HOLD_ID` на id брони.**
+
+```bash
+curl -X DELETE http://127.0.0.1:8000/api/holds/$HOLD_ID
+```
+
+В случае успеха вы получите `HTTP 200 OK` и данные об отмененной брони (как HoldResource).
+
+```json
+{
+    "data": {
+        "id": "a1b2c3d4-e5f6-7890-1234-567890abcdef",
+        "slot_id": 1,
+        "status": "cancelled",
+        "created_at": "2025-12-07T12:00:00.000000Z",
+        "updated_at": "2025-12-07T12:02:00.000000Z"
+    }
+}
+```
+Если бронь была подтверждена, то после отмены количество свободных мест в слоте (`remaining`) снова увеличится.

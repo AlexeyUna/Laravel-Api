@@ -11,16 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('hosts', function (Blueprint $table) {
+        Schema::create('holds', function (Blueprint $table) {
             $table->id();
             $table->foreignId('slot_id')->constrained('slots')->cascadeOnDelete();
             $table->string('idempotency_key')->nullable()->unique();
             $table->enum('status', ['held','confirmed','cancelled'])->default('held');
             $table->timestamp('expires_at')->nullable();
             $table->timestamps();
-            $table->index(['status', 'created_at']);
+          //  $table->index(['status', 'created_at']);
             $table->index(['slot_id', 'status'], 'idx_holds_slot_status');
-            $table->index(['status', 'expires_at'], 'idx_holds_cleanup');
+            //$table->index(['status', 'expires_at'], 'idx_holds_cleanup');
         });
     }
 
@@ -29,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('hosts');
+        Schema::dropIfExists('holds');
     }
 };
