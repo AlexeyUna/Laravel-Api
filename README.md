@@ -135,11 +135,13 @@ curl -X POST http://127.0.0.1:8000/api/holds/$HOLD_ID/confirm
 
 ```json
 {
-    "id": 12,
-    "slot_id": 1,
-    "status": "confirmed",    
-    "created_at": "2025-12-07T12:00:00:00.000000Z",
-    "updated_at": "2025-12-07T12:01:00.000000Z"
+    "data": {
+        "id": 1,
+        "slot_id": 1,
+        "status": "confirmed",
+        "created_at": "2025-12-07T17:14:08.000000Z",
+        "updated_at": "2025-12-07T17:14:46.000000Z"
+    }
 }
 ```
 
