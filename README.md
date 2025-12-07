@@ -94,7 +94,11 @@ curl -X GET "http://127.0.0.1:8000/api/slots/availability"
 **Замените `{slot_id}` на реальный ID слота.**
 
 ```bash
-curl -X POST http://127.0.0.1:8000/api/slots/$SLOT_ID/hold 
+curl -X POST http://127.0.0.1:8000/api/slots/$SLOT_ID/hold \
+-H "Content-Type: application/json" \
+-d "{
+    \"idempotency_key\": \"$idempotency_key\"
+}"
 ```
 
 В случае успеха вы получите `HTTP 201 Created` и информацию о созданном удержании. Запомните `id` (ключ идемпотентности) удержания (`$HOLD_ID`).
@@ -153,7 +157,7 @@ curl -X DELETE http://127.0.0.1:8000/api/holds/$HOLD_ID
 ```json
 {
     "data": {
-        "id": "a1b2c3d4-e5f6-7890-1234-567890abcdef",
+        "id": 1,
         "slot_id": 1,
         "status": "cancelled",
         "created_at": "2025-12-07T12:00:00.000000Z",

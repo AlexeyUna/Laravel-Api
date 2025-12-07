@@ -6,7 +6,6 @@ use App\Exceptions\HoldStatusException;
 use App\Exceptions\NoSlotsAvailableException;
 use App\Models\Hold;
 use App\Models\Slot;
-use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 
 class HoldService
