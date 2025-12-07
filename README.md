@@ -94,17 +94,7 @@ curl -X GET "http://127.0.0.1:8000/api/slots/availability"
 **Замените `{slot_id}` на реальный ID слота.**
 
 ```bash
-# Сгенерируйте UUID для ключа идемпотентности.
-# Пример для PowerShell: [guid]::NewGuid().ToString()
-# Пример для Linux/Mac: uuidgen
-export HOLD_ID="ВАШ_СГЕНЕРИРОВАННЫЙ_UUID"
-export SLOT_ID=1 # ID слота из шага 1
-
-curl -X POST http://127.0.0.1:8000/api/slots/$SLOT_ID/hold \
--H "Content-Type: application/json" \
--d "{
-    \"idempotency_key\": \"$HOLD_ID\"
-}"
+curl -X POST http://127.0.0.1:8000/api/slots/$SLOT_ID/hold 
 ```
 
 В случае успеха вы получите `HTTP 201 Created` и информацию о созданном удержании. Запомните `id` (ключ идемпотентности) удержания (`$HOLD_ID`).
