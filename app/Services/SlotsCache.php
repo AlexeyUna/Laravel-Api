@@ -50,7 +50,7 @@ class SlotsCache
         return [
             'items' => $items,
             'meta' => [
-                'count' => max(0, $itemsCount - 1),
+                'count' => $items->count(),
                 'cursor' => $cursor,
                 'next_cursor' => $nextCursor
             ],
